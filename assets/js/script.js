@@ -6,9 +6,25 @@ document.getElementById("status").addEventListener("click", e => getStatus(e));
 document.getElementById("submit").addEventListener("click", e => postForm(e));
 
 
+function processOptions(form) {
+    let optArray = [];
+
+    for (let e of form.entries()) {
+        if (e[0] === "options") {
+            optArray.push(e[1]);
+        }
+    }
+
+    form.delete("options");
+
+    form.append("options", optArray.join());
+
+    return form;
+}
+
 async function postForm(e) {
 
-    const form = new FormData(document.getElementById("checksform"));
+    const form = processOptions(new FormData(document.getElementById("checksform")));
 
     const response = await fetch(API_URL, {
         method: "POST",
@@ -22,6 +38,22 @@ async function postForm(e) {
 
     if (response.ok) {
         displayErrors(data);
+    } else {
+        throw new Error(data.error);
+    }
+
+}
+
+async function getStatus(e) {
+
+    const queryString = `${API_URL}?api_key=${API_KEY}`;
+
+    const response = await fetch(queryString);
+
+    const data = await response.json();
+
+    if (response.ok) {
+        displayStatus(data);
     } else {
         throw new Error(data.error);
     }
@@ -47,22 +79,6 @@ function displayErrors(data) {
     document.getElementById("resultsModalTitle").innerText = heading;
     document.getElementById("results-content").innerHTML = results;
     resultsModal.show();
-}
-
-async function getStatus(e) {
-
-    const queryString = `${API_URL}?api_key=${API_KEY}`;
-
-    const response = await fetch(queryString);
-
-    const data = await response.json();
-
-    if (response.ok) {
-        displayStatus(data);
-    } else {
-        throw new Error(data.error);
-    }
-
 }
 
 function displayStatus(data) {
